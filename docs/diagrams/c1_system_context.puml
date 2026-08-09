@@ -1,0 +1,10 @@
+@startuml C1 System Context
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+Person(userPerson, "Usuário", "Utiliza a aplicação para gerenciar suas tarefas")
+
+System(myTaskSystem, "Sistema de gerenciamento de tarefas")
+
+Rel(userPerson, myTaskSystem, "Gerenciar cartões de tarefas")
+
+@enduml

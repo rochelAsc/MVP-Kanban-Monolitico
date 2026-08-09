@@ -1,0 +1,13 @@
+@startuml C2 Containers
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(userPerson, "Usuário", "Utiliza a aplicação para gerenciar suas tarefas")
+System_Boundary(c1, "Sistema de gerenciamento de tarefas") {
+    Container(web_app, "Web Application", "Next.js", "Permite que o usuário gerencie seus cartões de tarefas")
+    ContainerDb(database, "Database", "SQLite", "Armezena dados da aplicação", "sqlite3")
+}
+
+Rel(userPerson, web_app, "Uses", "HTTPS/TCP")
+Rel(web_app, database, "Ler/Escreve", "SQL/TCP")
+
+@enduml
