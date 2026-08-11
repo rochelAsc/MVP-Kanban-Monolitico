@@ -2,7 +2,14 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { getAllTasks, getTaskById, createTask, updateTask, deleteTask } from '@/lib/task-model.js';
+import {
+  getAllTasks,
+  getTaskById,
+  createTask,
+  updateTask,
+  deleteTask,
+} from '@/lib/task-model.js';
+import { validateTask } from '@/lib/validators.js'; 
 
 export async function listTasks() {
   return getAllTasks();
@@ -13,31 +20,44 @@ export async function getTask(id) {
 }
 
 export async function createTaskAction(formData) {
-  const task = {
+  // Extrai dados do formData
+  const rawTask = {
     title: formData.get('title'),
     description: formData.get('description'),
     status: formData.get('status'),
     priority: formData.get('priority'),
   };
-  if (!task.title?.trim()) {
-    throw new Error('Título é obrigatório');
+
+  // Valida e sanitiza
+  let validated;
+  try {
+    validated = validateTask(rawTask);
+  } catch (error) {
+    // Retorna erro para o formulário
+    return { error: error.message };
   }
-  createTask(task);
+
+  createTask(validated);
   revalidatePath('/tasks');
   redirect('/tasks');
 }
 
 export async function updateTaskAction(id, formData) {
-  const task = {
+  const rawTask = {
     title: formData.get('title'),
     description: formData.get('description'),
     status: formData.get('status'),
     priority: formData.get('priority'),
   };
-  if (!task.title?.trim()) {
-    throw new Error('Título é obrigatório');
+
+  let validated;
+  try {
+    validated = validateTask(rawTask);
+  } catch (error) {
+    return { error: error.message };
   }
-  updateTask(id, task);
+
+  updateTask(id, validated);
   revalidatePath('/tasks');
   redirect('/tasks');
 }

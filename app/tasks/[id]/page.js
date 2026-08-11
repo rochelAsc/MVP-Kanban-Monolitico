@@ -2,17 +2,15 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { FiArrowLeft, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import StatusBadge from '@/components/StatusBadge';
+import { getTask } from '@/app/tasks/actions';
 
-const tarefasMock = [
-  { id: 1, titulo: 'Estudar Next.js', descricao: 'Ler documentação oficial', status: 'A Fazer', prioridade: 'Alta', dataCriacao: '2026-08-01' },
-  // ... outros
-];
-
-export default function TaskDetailPage({ params }) {
+export default async function TaskDetailPage({ params }) {
   const { id } = params;
-  const task = tarefasMock.find(t => t.id === parseInt(id));
+  const task = await getTask(id);
 
-  if (!task) notFound();
+  if (!task) {
+    notFound();
+  }
 
   return (
     <div>
@@ -24,17 +22,17 @@ export default function TaskDetailPage({ params }) {
 
       <div className="br-card mt-4">
         <div className="card-content">
-          <h2>{task.titulo}</h2>
+          <h2>{task.title}</h2>
           <div className="mt-3">
             <div className="row">
               <div className="col-6">
                 <p><strong>Status:</strong> <StatusBadge status={task.status} /></p>
               </div>
               <div className="col-6">
-                <p><strong>Prioridade:</strong> {task.prioridade}</p>
+                <p><strong>Prioridade:</strong> {task.priority}</p>
               </div>
               <div className="col-6">
-                <p><strong>Data:</strong> {task.dataCriacao}</p>
+                <p><strong>Criado em:</strong> {new Date(task.created_at).toLocaleDateString('pt-BR')}</p>
               </div>
               <div className="col-6">
                 <p><strong>ID:</strong> {task.id}</p>
@@ -43,7 +41,7 @@ export default function TaskDetailPage({ params }) {
           </div>
           <div className="mt-3">
             <p><strong>Descrição:</strong></p>
-            <p className="br-text">{task.descricao || 'Sem descrição'}</p>
+            <p className="br-text">{task.description || 'Sem descrição'}</p>
           </div>
           <div className="d-flex gap-2 mt-4">
             <Link href={`/tasks/${task.id}/edit`}>
@@ -51,9 +49,15 @@ export default function TaskDetailPage({ params }) {
                 <FiEdit2 /> Editar
               </button>
             </Link>
-            <button className="br-button danger">
-              <FiTrash2 /> Excluir
-            </button>
+            <form action={async () => {
+              'use server';
+              const { deleteTaskAction } = await import('@/app/tasks/actions');
+              await deleteTaskAction(task.id);
+            }}>
+              <button type="submit" className="br-button danger">
+                <FiTrash2 /> Excluir
+              </button>
+            </form>
           </div>
         </div>
       </div>
