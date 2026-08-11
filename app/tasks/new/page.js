@@ -1,24 +1,17 @@
 // app/tasks/new/page.js
 'use client';
 
-import { useRouter } from 'next/navigation';
 import TaskForm from '@/components/TaskForm';
+import { useRouter } from 'next/navigation';
 
 export default function NewTaskPage() {
   const router = useRouter();
 
-  const handleSubmit = (formData) => {
-    // Enquanto a Server Action não existe, só logamos
-    console.log('Criando tarefa:', formData);
-    alert(`Tarefa "${formData.titulo}" criada com sucesso! (mock)`);
-    router.push('/tasks');
-  };
-
   return (
-    <div>
-      <h2>Criar Nova Tarefa</h2>
+    <div className="container mt-4">
+      <h1 className="display-5">Nova Tarefa</h1>
       <TaskForm
-        onSubmit={handleSubmit}
+        isEdit={false}
         submitLabel="Criar Tarefa"
         onCancel={() => router.push('/tasks')}
       />
