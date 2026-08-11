@@ -1,7 +1,6 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 import {
   getAllTasks,
   getTaskById,
@@ -9,7 +8,7 @@ import {
   updateTask,
   deleteTask,
 } from '@/lib/task-model.js';
-import { validateTask } from '@/lib/validators.js'; 
+import { validateTask } from '@/lib/validators.js';
 
 export async function listTasks() {
   return getAllTasks();
@@ -20,7 +19,6 @@ export async function getTask(id) {
 }
 
 export async function createTaskAction(formData) {
-  // Extrai dados do formData
   const rawTask = {
     title: formData.get('title'),
     description: formData.get('description'),
@@ -28,18 +26,14 @@ export async function createTaskAction(formData) {
     priority: formData.get('priority'),
   };
 
-  // Valida e sanitiza
-  let validated;
   try {
-    validated = validateTask(rawTask);
+    const validated = validateTask(rawTask);
+    const newTask = createTask(validated);
+    revalidatePath('/tasks');
+    return { success: true, task: newTask };
   } catch (error) {
-    // Retorna erro para o formulário
     return { error: error.message };
   }
-
-  createTask(validated);
-  revalidatePath('/tasks');
-  redirect('/tasks');
 }
 
 export async function updateTaskAction(id, formData) {
@@ -50,20 +44,22 @@ export async function updateTaskAction(id, formData) {
     priority: formData.get('priority'),
   };
 
-  let validated;
   try {
-    validated = validateTask(rawTask);
+    const validated = validateTask(rawTask);
+    const updatedTask = updateTask(id, validated);
+    revalidatePath('/tasks');
+    return { success: true, task: updatedTask };
   } catch (error) {
     return { error: error.message };
   }
-
-  updateTask(id, validated);
-  revalidatePath('/tasks');
-  redirect('/tasks');
 }
 
 export async function deleteTaskAction(id) {
-  deleteTask(id);
-  revalidatePath('/tasks');
-  redirect('/tasks');
+  try {
+    const deleted = deleteTask(id);
+    revalidatePath('/tasks');
+    return { success: true, deleted };
+  } catch (error) {
+    return { error: error.message };
+  }
 }

@@ -24,7 +24,7 @@ export default function TaskListPage() {
 
     const onTaskCreated = (task) => {
       console.log('[Observer] Tarefa criada:', task.title);
-      loadTasks(); // recarrega a lista automaticamente
+      loadTasks(); 
     };
 
     const onTaskUpdated = (task) => {
@@ -41,13 +41,12 @@ export default function TaskListPage() {
     eventBus.on('taskUpdated', onTaskUpdated);
     eventBus.on('taskDeleted', onTaskDeleted);
 
-    // Cleanup: remove os listeners quando o componente desmontar
     return () => {
       eventBus.off('taskCreated', onTaskCreated);
       eventBus.off('taskUpdated', onTaskUpdated);
       eventBus.off('taskDeleted', onTaskDeleted);
     };
-  }, []); // executa apenas uma vez
+  }, []);
 
   const handleEdit = (id) => {
     router.push(`/tasks/${id}/edit`);
@@ -55,14 +54,15 @@ export default function TaskListPage() {
 
   const handleDelete = async (id) => {
     if (confirm('Tem certeza que deseja excluir esta tarefa?')) {
-      await deleteTaskAction(id);
-      // loadTasks() será chamado automaticamente pelo listener onTaskDeleted
-      // Mas mantemos como fallback caso o evento falhe
-      await loadTasks();
+      const result = await deleteTaskAction(id);
+      if (result.success) {
+        eventBus.emit('taskDeleted', { id });
+      } else {
+        alert(result.error);
+      }
     }
   };
 
-  // Aplica a estratégia de ordenação
   const StrategyClass = strategyMap[ordenacao] || strategyMap.data;
   const strategy = new StrategyClass();
   const tasksOrdenadas = strategy.sort(tasks);

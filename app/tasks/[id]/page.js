@@ -5,7 +5,7 @@ import StatusBadge from '@/components/StatusBadge';
 import { getTask } from '@/app/tasks/actions';
 
 export default async function TaskDetailPage({ params }) {
-  const { id } = params;
+  const { id } = await params;
   const task = await getTask(id);
 
   if (!task) {

@@ -13,9 +13,6 @@ export default function Header() {
             <Link href="/tasks" className="br-button small">
               <FiHome/> Início
             </Link>
-            <Link href="/tasks/new" className="br-button primary small ml-2">
-              <FiPlus/> Nova
-            </Link>
           </div>
         </div>
       </div>

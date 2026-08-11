@@ -1,17 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useFormState } from 'react-dom';
+import { useState, useEffect, useActionState } from 'react';
+import { useRouter } from 'next/navigation'; 
 import { createTaskAction, updateTaskAction } from '@/app/tasks/actions';
+import eventBus from '@/lib/event-bus'; 
 
-// Função auxiliar para mapear status do banco para exibição
 const statusMap = {
   'todo': 'A Fazer',
   'doing': 'Em Andamento',
   'done': 'Concluído'
 };
 
-// Função auxiliar para mapear status de exibição para banco
 const statusReverseMap = {
   'A Fazer': 'todo',
   'Em Andamento': 'doing',
@@ -20,39 +19,50 @@ const statusReverseMap = {
 
 export default function TaskForm({
   initialData = {},
-  onSubmit,
   submitLabel = 'Salvar',
   isLoading: externalLoading = false,
   onCancel,
-  taskId = null, // se for edição, passa o id
+  taskId = null,
   isEdit = false,
 }) {
-  // Se for edição, usa a Server Action de update; senão, create
+  const router = useRouter();
+
   const action = isEdit ? updateTaskAction : createTaskAction;
 
-  // Se for edição, precisamos passar o id para a action
-  // Mas a action espera (id, formData), então precisamos de um wrapper
-  const [state, formAction] = useFormState(
+  const [state, formAction, isPending] = useActionState(
     async (prevState, formData) => {
       if (isEdit && taskId) {
         return await updateTaskAction(taskId, formData);
       }
       return await action(formData);
     },
-    null
+    null 
   );
 
-  // Estado local para o formulário (para feedback imediato)
+  useEffect(() => {
+    if (state?.success) {
+      if (isEdit) {
+        console.log('[Observer] Tarefa atualizada:', state.task.title);
+        eventBus.emit('taskUpdated', state.task);
+      } else {
+        console.log('[Observer] Tarefa criada:', state.task.title);
+        eventBus.emit('taskCreated', state.task);
+      }
+
+      router.push('/tasks');
+    }
+  }, [state, isEdit, router]);
+
+
   const [formData, setFormData] = useState({
     titulo: '',
     descricao: '',
     status: 'A Fazer',
   });
 
-  // Inicializar com dados existentes (para edição)
+
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
-      // Mapeia status do banco para exibição
       const statusExibicao = statusMap[initialData.status] || initialData.status || 'A Fazer';
       setFormData({
         titulo: initialData.titulo || initialData.title || '',
@@ -67,20 +77,10 @@ export default function TaskForm({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Se for usado com a prop onSubmit tradicional (para compatibilidade)
-  const handleSubmit = (e) => {
-    if (onSubmit) {
-      e.preventDefault();
-      onSubmit(formData);
-    }
-    // Se não houver onSubmit, o formAction será usado automaticamente
-  };
-
-  // Verifica se há erro da Server Action
   const error = state?.error || state?.message;
 
   return (
-    <form action={onSubmit ? undefined : formAction} onSubmit={handleSubmit}>
+    <form action={formAction}>
       <input type="hidden" name="title" value={formData.titulo} />
       <input type="hidden" name="description" value={formData.descricao} />
       <input type="hidden" name="status" value={statusReverseMap[formData.status] || 'todo'} />
@@ -95,7 +95,7 @@ export default function TaskForm({
           value={formData.titulo}
           onChange={handleChange}
           required
-          disabled={externalLoading || state?.loading}
+          disabled={externalLoading || isPending}
           placeholder="Digite o título da tarefa"
         />
       </div>
@@ -108,7 +108,7 @@ export default function TaskForm({
           rows="4"
           value={formData.descricao}
           onChange={handleChange}
-          disabled={externalLoading || state?.loading}
+          disabled={externalLoading || isPending}
           placeholder="Descreva a tarefa"
         />
       </div>
@@ -120,7 +120,7 @@ export default function TaskForm({
           name="status"
           value={formData.status}
           onChange={handleChange}
-          disabled={externalLoading || state?.loading}
+          disabled={externalLoading || isPending}
         >
           <option value="A Fazer">A Fazer</option>
           <option value="Em Andamento">Em Andamento</option>
@@ -138,16 +138,16 @@ export default function TaskForm({
         <button
           type="submit"
           className="br-button primary"
-          disabled={externalLoading || state?.loading}
+          disabled={externalLoading || isPending}
         >
-          {(externalLoading || state?.loading) ? 'Salvando...' : submitLabel}
+          {(externalLoading || isPending) ? 'Salvando...' : submitLabel}
         </button>
         {onCancel && (
           <button
             type="button"
             className="br-button secondary"
             onClick={onCancel}
-            disabled={externalLoading || state?.loading}
+            disabled={externalLoading || isPending}
           >
             Cancelar
           </button>
