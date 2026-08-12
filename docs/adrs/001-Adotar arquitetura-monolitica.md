@@ -1,25 +1,22 @@
-# ADR - 001 Adotar arquitetura monolítica
+# ADR - 001: Adoção de arquitetura monolítica
 
 ## Status
 
-accepted
+Aceito
 
 ## Context
 
-Construção de um MVP em menos de uma semana
+Construção de um produto mínimo viável (MVP), em uma prazo mais curto que uma semana, sobre um sistema autoral simples que tenha alguma arquitetura específica. Algumas arquiteturas foram discutidas, mas a simplicidade que a arquitetura monolítica proporciona foi preferida.
 
 ## Decision
 
-O projeto vai adotar a arquitetura monolítica
+Adotar a arquitetura monolítica para o desenvolvimento do projeto
 
 ## Consequences
 
-### Vantagens
-- Simplicidade no desenvolvimento
+- Simplicidade do desenvolvimento
+- Celeridade de integração, que é quase nula
 - Simplicidade na implantação
-- Cumprimento dos prazos
-
-### Desvantagens
-- É preciso empregar mais esforço para evitar acoplamento na aplicação
-- Aumento dos custos para manutenção se aplicação continuar como monolítica
-- Custos com migração para outra arquitetura
+- Exige mais esforço para evitar acoplamento e conseguir coesão
+- Maior dificuldade para migração de arquitetura
+- Escala mal
